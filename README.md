@@ -1,1 +1,1 @@
-"# Segmantation" 
+"# Segmentation" 
