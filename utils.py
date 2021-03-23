@@ -9,13 +9,13 @@ IMAGE_DIR = os.path.join(os.getcwd(), "Mask_RCNN_tf_fork_matterport/images")
 
 class Utils:
     @staticmethod
-    def get_image():
-        print("IMAGE_DIR", IMAGE_DIR)
-        file_names = next(os.walk(IMAGE_DIR))[2]
-        test_img_path = r'C:\Users\m\Desktop\Image Segmentation\keras_deeplab_v3_plus\imgs\image1.jpg'
-        random_path = os.path.join(IMAGE_DIR, random.choice(file_names))
-        print("Current random path", random_path)
-        image = cv2.imread(random_path)
+    def get_image(img_path):
+        # print("IMAGE_DIR", IMAGE_DIR)
+        # file_names = next(os.walk(IMAGE_DIR))[2]
+        # test_img_path = r'C:\Users\m\Desktop\Image Segmentation\keras_deeplab_v3_plus\imgs\image1.jpg'
+        # random_path = os.path.join(IMAGE_DIR, random.choice(file_names))
+        # print("Current random path", random_path)
+        image = cv2.imread(img_path)
 
         return image
 

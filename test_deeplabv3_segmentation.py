@@ -7,10 +7,11 @@ from keras_deeplab_v3_plus.model import Deeplabv3
 from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
 
 from utils import Utils
+import argparse
 
-def main():
+def main(weights, img_path):
     trained_image_width = 512
-    image = Utils.get_image() #cv2.imread(r'C:\Users\m\Desktop\Image Segmentation\keras_deeplab_v3_plus\imgs\image1.jpg')
+    image = Utils.get_image(img_path) #cv2.imread(r'C:\Users\m\Desktop\Image Segmentation\keras_deeplab_v3_plus\imgs\image1.jpg')
 
     # resize to max dimension of images from training dataset
     w, h, _ = image.shape
@@ -59,4 +60,10 @@ def main():
     plt.waitforbuttonpress()
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--weights', type=str)
+    parser.add_argument('--img_path', type=str)
+
+    args = parser.parse_args()
+
+    main(args.weights, args.img_path)

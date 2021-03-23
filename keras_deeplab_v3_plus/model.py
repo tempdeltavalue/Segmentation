@@ -242,7 +242,8 @@ def Deeplabv3(weights='pascal_voc',
               backbone='mobilenetv2',
               OS=16,
               alpha=1.,
-              activation=None):
+              activation=None,
+              weights_path=None):
     """ Instantiates the Deeplabv3+ architecture
     Optionally loads weights pre-trained
     on PASCAL VOC or Cityscapes. This model is available for TensorFlow only.
@@ -504,6 +505,12 @@ def Deeplabv3(weights='pascal_voc',
     model = Model(inputs, x, name='deeplabv3plus')
 
     # load weights
+
+    if weights_path != None:
+        model.load_weights(weights_path, by_name=True)
+
+        return model
+
 
     if weights == 'pascal_voc':
         if backbone == 'xception':

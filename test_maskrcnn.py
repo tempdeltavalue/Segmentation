@@ -2,7 +2,7 @@ import os
 import sys
 import random
 import time
-import cv2
+# import cv2
 
 from utils import Utils
 
@@ -15,6 +15,7 @@ from Mask_RCNN_tf_fork_matterport.mrcnn import config
 from Mask_RCNN_tf_fork_matterport.mrcnn import utils
 import Mask_RCNN_tf_fork_matterport.mrcnn.model as modellib
 from Mask_RCNN_tf_fork_matterport.mrcnn import visualize
+import argparse
 
 # Import COCO config
 sys.path.append(os.path.join(ROOT_DIR, "Mask_RCNN_tf_fork_matterport/samples/coco/"))  # To find local version
@@ -45,7 +46,7 @@ class InferenceConfig(coco.CocoConfig):
     IMAGES_PER_GPU = 1
 
 
-def prepare_MASK_RCNN():
+def prepare_MASK_RCNN(weights):
     # Directory to save logs and trained model
     config = InferenceConfig()
     config.display()
@@ -55,32 +56,30 @@ def prepare_MASK_RCNN():
     # Local path to trained weights file
     COCO_MODEL_PATH = os.path.join(ROOT_DIR, "Mask_RCNN_tf_fork_matterport\mask_rcnn_coco.h5")
     # Download COCO trained weights from Releases if needed
-    if not os.path.exists(COCO_MODEL_PATH):
-        utils.download_trained_weights(COCO_MODEL_PATH)
+    # if not os.path.exists(COCO_MODEL_PATH):
+    #     utils.download_trained_weights(COCO_MODEL_PATH)
     print("MASK RCNN MODEL_DIR", MODEL_DIR)
     # Directory of images to run detection on
 
     # Create model object in inference mode.
     model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
     # Load weights trained on MS-COCO
-    model.load_weights(COCO_MODEL_PATH, by_name=True)
+    model.load_weights(weights, by_name=True)
 
     return model
 
-def test_MASK_RCNN():
-    image = Utils.get_image()
-    model = prepare_MASK_RCNN()
+def test_MASK_RCNN(weights, img_path):
+    image = Utils.get_image(img_path)
+    model = prepare_MASK_RCNN(weights)
 
 
     # Run detection
     start_time = time.time()
     results = model.detect([image], verbose=1)
-    print("results, shape ", results)
     print("prediction time", time.time() - start_time)
 
     # Visualize results
     r = results[0]
-    print(r["masks"].shape)
     visualize.display_instances(image,
                                 r['rois'],
                                 r['masks'],
@@ -90,5 +89,10 @@ def test_MASK_RCNN():
 
 
 if __name__ == "__main__":
-    print("Main")
-    test_MASK_RCNN()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--weights', type=str)
+    parser.add_argument('--img_path', type=str)
+
+    args = parser.parse_args()
+
+    test_MASK_RCNN(args.weights, args.img_path)

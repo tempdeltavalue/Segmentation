@@ -73,11 +73,13 @@ def parse_args(argv=None):
     parser.add_argument('--display_fps', default=False, dest='display_fps', action='store_true',
                         help='When displaying / saving video, draw the FPS on the frame')
 
+    parser.add_argument('--img_path', type=str)
+
     parser.set_defaults(no_bar=False, display=False, resume=False,
                         output_coco_json=False,
                         shuffle=False,
                         benchmark=False, no_hash=False, mask_proto_debug=False, crop=True, detect=False,
-                        display_fps=False)
+                        display_fps=False, img_path=None)
 
     global args
     args = parser.parse_args(argv)
@@ -213,7 +215,6 @@ if __name__ == '__main__':
         set_cfg(args.config)
 
 
-    print("args.trained_model ", args.trained_model )
 
     with torch.no_grad():
         if not os.path.exists('results'):
@@ -234,7 +235,7 @@ if __name__ == '__main__':
         if args.cuda:
             net = net.cuda()
 
-        img = Utils.get_image()
+        img = Utils.get_image(args.img_path)
 
         frame = torch.from_numpy(img).cuda().float()
         batch = FastBaseTransform()(frame.unsqueeze(0))
