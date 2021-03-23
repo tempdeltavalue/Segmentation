@@ -2,7 +2,11 @@ import os
 import sys
 import random
 import time
+<<<<<<< HEAD
 # import cv2
+=======
+import cv2
+>>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
 
 from utils import Utils
 
@@ -15,7 +19,10 @@ from Mask_RCNN_tf_fork_matterport.mrcnn import config
 from Mask_RCNN_tf_fork_matterport.mrcnn import utils
 import Mask_RCNN_tf_fork_matterport.mrcnn.model as modellib
 from Mask_RCNN_tf_fork_matterport.mrcnn import visualize
+<<<<<<< HEAD
 import argparse
+=======
+>>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
 
 # Import COCO config
 sys.path.append(os.path.join(ROOT_DIR, "Mask_RCNN_tf_fork_matterport/samples/coco/"))  # To find local version
@@ -56,8 +63,7 @@ def prepare_MASK_RCNN(weights):
     # Local path to trained weights file
     COCO_MODEL_PATH = os.path.join(ROOT_DIR, "Mask_RCNN_tf_fork_matterport\mask_rcnn_coco.h5")
     # Download COCO trained weights from Releases if needed
-    # if not os.path.exists(COCO_MODEL_PATH):
-    #     utils.download_trained_weights(COCO_MODEL_PATH)
+
     print("MASK RCNN MODEL_DIR", MODEL_DIR)
     # Directory of images to run detection on
 
@@ -71,8 +77,6 @@ def prepare_MASK_RCNN(weights):
 def test_MASK_RCNN(weights, img_path):
     image = Utils.get_image(img_path)
     model = prepare_MASK_RCNN(weights)
-
-
     # Run detection
     start_time = time.time()
     results = model.detect([image], verbose=1)

@@ -7,6 +7,7 @@ from keras_deeplab_v3_plus.model import Deeplabv3
 from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
 
 from utils import Utils
+<<<<<<< HEAD
 import argparse
 
 def main(weights, img_path):

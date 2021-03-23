@@ -16,7 +16,6 @@ class Utils:
         # random_path = os.path.join(IMAGE_DIR, random.choice(file_names))
         # print("Current random path", random_path)
         image = cv2.imread(img_path)
-
         return image
 
 
