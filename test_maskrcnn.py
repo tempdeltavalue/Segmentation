@@ -1,12 +1,6 @@
 import os
 import sys
-import random
 import time
-<<<<<<< HEAD
-# import cv2
-=======
-import cv2
->>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
 
 from utils import Utils
 
@@ -19,10 +13,8 @@ from Mask_RCNN_tf_fork_matterport.mrcnn import config
 from Mask_RCNN_tf_fork_matterport.mrcnn import utils
 import Mask_RCNN_tf_fork_matterport.mrcnn.model as modellib
 from Mask_RCNN_tf_fork_matterport.mrcnn import visualize
-<<<<<<< HEAD
 import argparse
-=======
->>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
+
 
 # Import COCO config
 sys.path.append(os.path.join(ROOT_DIR, "Mask_RCNN_tf_fork_matterport/samples/coco/"))  # To find local version
