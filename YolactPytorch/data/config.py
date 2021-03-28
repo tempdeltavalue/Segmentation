@@ -106,7 +106,7 @@ class Config(object):
 
 # ----------------------- DATASETS ----------------------- #
 import os
-dataset_path = r'C:\Users\m\Desktop\COCOtestset'
+# dataset_path = r'C:\Users\m\Desktop\COCOtestset'
 dataset_base = Config({
     'name': 'Base Dataset',
 
@@ -115,7 +115,8 @@ dataset_base = Config({
     'train_info':   'path_to_annotation_file',
 
     # Validation images and annotations.
-    'valid_images': os.path.join(dataset_path, "val2014"),
+    # 'valid_images': os.path.join(dataset_path, "val2014"),
+    'dataset_path': 'dataset path',
     'valid_info':   'path_to_annotation_file',
 
     # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
@@ -134,16 +135,15 @@ coco2014_dataset = dataset_base.copy({
     'name': 'COCO 2014',
     
     'train_info': './data/coco/annotations/instances_train2014.json',
-    'valid_info': dataset_path + '/annotations/instances_minival2014.json',
+    'valid_info': dataset_base.dataset_path + '/annotations/instances_minival2014.json',
 
     'label_map': COCO_LABEL_MAP
 })
 
 coco2017_dataset = dataset_base.copy({
     'name': 'COCO 2017',
-    
     'train_info': './data/coco/annotations/instances_train2017.json',
-    'valid_info': './data/coco/annotations/instances_val2017.json',
+    'valid_info': dataset_base.dataset_path + '/annotations/instances_val2017.json',
 
     'label_map': COCO_LABEL_MAP
 })
@@ -418,6 +418,8 @@ fpn_base = Config({
 
 coco_base_config = Config({
     'dataset': coco2014_dataset,
+    'dataset_path': "",
+
     'num_classes': 81, # This should include the background class
 
     'max_iter': 400000,
@@ -660,6 +662,7 @@ yolact_base_config = coco_base_config.copy({
 
     # Dataset stuff
     'dataset': coco2017_testdev_dataset,
+    "dataset_path": coco_base_config.dataset_path,
     'num_classes': len(coco2017_testdev_dataset.class_names) + 1,
 
     # Image Size
@@ -822,7 +825,9 @@ def set_cfg(config_name:str):
     if cfg.name is None:
         cfg.name = config_name.split('_config')[0]
 
-def set_dataset(dataset_name:str):
+def set_dataset(dataset_name, dataset_path):
     """ Sets the dataset of the current config. """
     cfg.dataset = eval(dataset_name)
-    
+    cfg.dataset_path = dataset_path
+
+

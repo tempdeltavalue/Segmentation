@@ -72,21 +72,13 @@ def parse_args(argv=None):
                         help='Don\'t evauluate the mask branch at all and only do object detection. This only works for --display and --benchmark.')
     parser.add_argument('--display_fps', default=False, dest='display_fps', action='store_true',
                         help='When displaying / saving video, draw the FPS on the frame')
-
-<<<<<<< HEAD
     parser.add_argument('--img_path', type=str)
 
-=======
->>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
     parser.set_defaults(no_bar=False, display=False, resume=False,
                         output_coco_json=False,
                         shuffle=False,
                         benchmark=False, no_hash=False, mask_proto_debug=False, crop=True, detect=False,
-<<<<<<< HEAD
                         display_fps=False, img_path=None)
-=======
-                        display_fps=False)
->>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
 
     global args
     args = parser.parse_args(argv)
@@ -243,11 +235,7 @@ if __name__ == '__main__':
         if args.cuda:
             net = net.cuda()
 
-<<<<<<< HEAD
         img = Utils.get_image(args.img_path)
-=======
-        img = Utils.get_image()
->>>>>>> 45480541a0b39d3a6745f0df3c6f4cf8e5bf673d
 
         frame = torch.from_numpy(img).cuda().float()
         batch = FastBaseTransform()(frame.unsqueeze(0))

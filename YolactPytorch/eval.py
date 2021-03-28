@@ -53,6 +53,9 @@ def parse_args(argv=None):
     parser.add_argument('--trained_model',
                         default='weights/ssd300_mAP_77.43_v2.pth', type=str,
                         help='Trained state_dict file path to open. If "interrupt", this will open the interrupt file.')
+    parser.add_argument('--imgs_path')
+    parser.add_argument('--annotation_path')
+
     parser.add_argument('--top_k', default=5, type=int,
                         help='Further restrict the number of predictions to parse')
     parser.add_argument('--cuda', default=True, type=str2bool,
@@ -115,8 +118,6 @@ def parse_args(argv=None):
                         help='The number of frames to evaluate in parallel to make videos play at higher fps.')
     parser.add_argument('--score_threshold', default=0, type=float,
                         help='Detections with a score under this threshold will not be considered. This currently only works in display mode.')
-    parser.add_argument('--dataset', default=None, type=str,
-                        help='If specified, override the dataset specified in the config with this one (example: coco2017_dataset).')
     parser.add_argument('--detect', default=False, dest='detect', action='store_true',
                         help='Don\'t evauluate the mask branch at all and only do object detection. This only works for --display and --benchmark.')
     parser.add_argument('--display_fps', default=False, dest='display_fps', action='store_true',
@@ -944,7 +945,6 @@ def evaluate(net:Yolact, dataset, train_mode=False):
 
             with timer.env('Load Data'):
                 img, gt, gt_masks, h, w, num_crowd = dataset.pull_item(image_idx)
-
                 # Test flag, do not upvote
                 if cfg.mask_proto_debug:
                     with open('scripts/info.txt', 'w') as f:
@@ -1075,10 +1075,6 @@ if __name__ == '__main__':
 
     if args.detect:
         cfg.eval_mask_branch = False
-
-    if args.dataset is not None:
-        set_dataset(args.dataset)
-
     with torch.no_grad():
         if not os.path.exists('results'):
             os.makedirs('results')
@@ -1096,15 +1092,17 @@ if __name__ == '__main__':
             exit()
 
         if args.image is None and args.video is None and args.images is None:
-            dataset = COCODetection(cfg.dataset.valid_images, cfg.dataset.valid_info,
-                                    transform=BaseTransform(), has_gt=cfg.dataset.has_gt)
+            dataset = COCODetection(args.imgs_path,
+                                    args.annotation_path,
+                                    transform=BaseTransform())
+
             prep_coco_cats()
         else:
             dataset = None        
 
         print('Loading model...', end='')
         net = Yolact()
-        net.load_weights(os.getcwd() + args.trained_model)
+        net.load_weights(args.trained_model)
         net.eval()
         print(' Done.')
 

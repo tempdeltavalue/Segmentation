@@ -9,6 +9,7 @@ import numpy as np
 from .config import cfg
 from pycocotools import mask as maskUtils
 import random
+import urllib.request
 
 def get_label_map():
     if cfg.dataset.label_map is None:
@@ -61,9 +62,14 @@ class COCODetection(data.Dataset):
         prep_crowds (bool): Whether or not to prepare crowds for the evaluation step.
     """
 
-    def __init__(self, image_path, info_file, transform=None,
+    def __init__(self,
+                 image_path,
+                 info_file,
+                 transform=None,
                  target_transform=None,
-                 dataset_name='MS COCO', has_gt=True):
+                 dataset_name='MS COCO',
+                 has_gt=True,
+                 limit=1000):
         # Do this here because we have too many things named COCO
         from pycocotools.coco import COCO
         
@@ -72,8 +78,10 @@ class COCODetection(data.Dataset):
 
         self.root = image_path
         self.coco = COCO(info_file)
-        
-        self.ids = list(self.coco.imgToAnns.keys())[0:500]
+        #catIds = self.coco.getCatIds()
+        #self.ids = self.coco.getImgIds(catIds=catIds)[0:limit]
+
+        self.ids = list(self.coco.imgToAnns.keys())[0:limit]
         if len(self.ids) == 0 or not has_gt:
             self.ids = list(self.coco.imgs.keys())
         
@@ -107,7 +115,6 @@ class COCODetection(data.Dataset):
             Note that if no crowd annotations exist, crowd will be None
         """
         img_id = self.ids[index]
-
         if self.has_gt:
             ann_ids = self.coco.getAnnIds(imgIds=img_id)
 
@@ -132,16 +139,17 @@ class COCODetection(data.Dataset):
         # The split here is to have compatibility with both COCO2014 and 2017 annotations.
         # In 2014, images have the pattern COCO_{train/val}2014_%012d.jpg, while in 2017 it's %012d.jpg.
         # Our script downloads the images as %012d.jpg so convert accordingly.
-        file_name = self.coco.loadImgs(img_id)[0]['file_name']
-        
-        if file_name.startswith('COCO'):
-            file_name = file_name.split('_')[-1]
+        file_name = self.coco.loadImgs(img_id)[0]["file_name"]
 
+        #temporary
         file_name = "COCO_val2014_" + file_name
-        path = osp.join(self.root, file_name)
-        assert osp.exists(path), 'Image path does not exist: {}'.format(path)
-        
-        img = cv2.imread(path)
+        #
+        # if file_name.startswith('COCO'):
+        #     file_name = file_name.split('_')[-1]
+
+        print("path is", os.path.join(self.root, file_name))
+        img = cv2.imread(os.path.join(self.root, file_name))
+
         height, width, _ = img.shape
         
         if len(target) > 0:
@@ -174,6 +182,7 @@ class COCODetection(data.Dataset):
             print('Warning: Augmentation output an example with no ground truth. Resampling...')
             return self.pull_item(random.randint(0, len(self.ids)-1))
 
+        #img, gt, gt_masks, h, w, num_crowd = dataset.pull_item(image_idx)
         return torch.from_numpy(img).permute(2, 0, 1), target, masks, height, width, num_crowds
 
     def pull_image(self, index):

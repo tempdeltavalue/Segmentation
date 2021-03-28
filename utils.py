@@ -48,48 +48,48 @@ class Utils:
 
     @staticmethod
     def test_annotations():
-        ann_path = r"C:\Users\m\Desktop\ImageSegmentation\coco\annotations\instances_minival2014.json"
+        ann_path = r"C:\Users\m\Desktop\COCOtestset\annotations\instances_val2017.json"
         with open(ann_path) as f:
             data = json.load(f)
             print(data.keys())
             images = data["images"]
+            print(len(images))
             annotations = data["annotations"]
+            print(len(annotations))
 
-            for img in images:
-                img_id = img["id"]
-                # print(img_id)
+            print(data["categories"])
+
+            for img_data in images:
+                img_id = img_data["id"]
 
                 for ann in annotations:
                     ann_id = ann["id"]
+                    category_id = ann["category_id"]
 
-
-                    if img_id == ann_id:
-                        #print(ann)
+                    if category_id == 1 and ann_id == img_id:
+                        print("img_id", img_id)
                         segmentation_maps = ann["segmentation"]
                         box = ann["bbox"]
-                        category_id = ann["category_id"]
-                        print(len(segmentation_maps))
                         for seg_map in segmentation_maps:
                             poly = np.array(seg_map).reshape((int(len(seg_map)/2), 2))
 
-
-                        url = img["url"]
-                        print(img)
+                        url = img_data["coco_url"]
+                        print(url)
                         try:
                             with urllib.request.urlopen(url) as url:
                                 s = url.read()
 
                                 arr = np.asarray(bytearray(s), dtype=np.uint8)
                                 img = cv2.imdecode(arr, -1)  # 'Load it as it is'
-                                mask = np.zeros((img.shape[0], img.shape[1]))
-
-                                cv2.fillConvexPoly(mask, np.int32([poly]), 1)
-                                mask = mask.astype(np.bool)
-                                out = np.zeros_like(img)
-                                out[mask] = img[mask]
+                                # mask = np.zeros((img.shape[0], img.shape[1]))
+                                #
+                                # cv2.fillConvexPoly(mask, np.int32([poly]), 1)
+                                # mask = mask.astype(np.bool)
+                                # out = np.zeros_like(img)
+                                # out[mask] = img[mask]
 
                                 # img = Utils.apply_mask(img, mask, [125, 125, 125])
-                            cv2.imshow('lalala', out)
+                            cv2.imshow('lalala', img)
                             if cv2.waitKey() & 0xff == 27:
                                 continue
 
