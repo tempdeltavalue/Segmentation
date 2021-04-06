@@ -4,6 +4,8 @@ import random
 import json
 import urllib.request
 import numpy as np
+import time
+import glob
 
 IMAGE_DIR = os.path.join(os.getcwd(), "Mask_RCNN_tf_fork_matterport/images")
 
@@ -47,40 +49,59 @@ class Utils:
 
 
     @staticmethod
-    def test_annotations():
-        ann_path = r"C:\Users\m\Desktop\COCOtestset\annotations\instances_val2017.json"
+    def generate_coco_subset():
+        ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
+
+        result_dict = {}
+
         with open(ann_path) as f:
             data = json.load(f)
-            print(data.keys())
             images = data["images"]
-            print(len(images))
             annotations = data["annotations"]
-            print(len(annotations))
 
-            print(data["categories"])
-
+            save_root_path = r"C:\Users\m\Desktop\COCOtestset"
+            save_base_path = save_root_path + r"\new_val2017"
+            saved_imgs_count = 0
+            print("len images", len(images))
             for img_data in images:
                 img_id = img_data["id"]
+                # if img_id != 183666:
+                #     continue
+                print("VOVA")
+
+                if saved_imgs_count > 100:
+                    break
 
                 for ann in annotations:
-                    ann_id = ann["id"]
                     category_id = ann["category_id"]
 
-                    if category_id == 1 and ann_id == img_id:
-                        print("img_id", img_id)
-                        segmentation_maps = ann["segmentation"]
-                        box = ann["bbox"]
-                        for seg_map in segmentation_maps:
-                            poly = np.array(seg_map).reshape((int(len(seg_map)/2), 2))
+                    if category_id == 1 and ann["image_id"] == img_id:
+                        # segmentation_maps = ann["segmentation"]
+                        # box = ann["bbox"]
+                        # for seg_map in segmentation_maps:
+                        #     poly = np.array(seg_map).reshape((int(len(seg_map)/2), 2))
 
                         url = img_data["coco_url"]
-                        print(url)
+                        start_time = time.time()
                         try:
                             with urllib.request.urlopen(url) as url:
                                 s = url.read()
 
                                 arr = np.asarray(bytearray(s), dtype=np.uint8)
                                 img = cv2.imdecode(arr, -1)  # 'Load it as it is'
+
+                                img_file_name = img_data["file_name"]
+                                img_save_path = os.path.join(save_base_path, img_file_name)
+
+                                if img_file_name not in result_dict:
+                                    result_dict[img_file_name] = []
+
+                                result_dict[img_file_name].append(ann["bbox"])
+
+                                cv2.imwrite(img_save_path, img)
+                                saved_imgs_count += 1
+                                print("saved_imgs_count", saved_imgs_count)
+                                print("LOADING TIME", time.time() - start_time)
                                 # mask = np.zeros((img.shape[0], img.shape[1]))
                                 #
                                 # cv2.fillConvexPoly(mask, np.int32([poly]), 1)
@@ -89,14 +110,19 @@ class Utils:
                                 # out[mask] = img[mask]
 
                                 # img = Utils.apply_mask(img, mask, [125, 125, 125])
-                            cv2.imshow('lalala', img)
-                            if cv2.waitKey() & 0xff == 27:
-                                continue
+                            # cv2.imshow('lalala', img)
+                            # if cv2.waitKey() & 0xff == 27:
+                            #     continue
 
                         except Exception as e:
                             print("Error", e)
 
+        print("result_dict", result_dict)
 
+        print("PRE JSON SAVED")
+        with open(save_root_path + '/data.json', 'w') as fp:
+            print("JSON SAVED")
+            json.dump(result_dict, fp)
 
 if __name__ == "__main__":
-    Utils.test_annotations()
+    Utils.generate_coco_subset()
