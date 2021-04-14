@@ -36,8 +36,8 @@ args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 torch.manual_seed(args.seed)
 
-vae = VAE(args)
-ae = AE(args)
+vae = VAE()
+ae = AE()
 architectures = {'AE':  ae,
                  'VAE': vae}
 

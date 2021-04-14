@@ -9,7 +9,8 @@ import glob
 
 IMAGE_DIR = os.path.join(os.getcwd(), "Mask_RCNN_tf_fork_matterport/images")
 
-class Utils:
+
+class GeneralUtils:
     @staticmethod
     def get_image(img_path):
         # print("IMAGE_DIR", IMAGE_DIR)
@@ -19,7 +20,6 @@ class Utils:
         # print("Current random path", random_path)
         image = cv2.imread(img_path)
         return image
-
 
     @staticmethod
     def divide_pascal_train_val():
@@ -59,15 +59,18 @@ class Utils:
             annotations = data["annotations"]
 
         for ann in annotations:
-            image_id = ann['image_id']
             category_id = ann['category_id']
             area = ann['area']
+
+            if category_id != 1 or area < 2000:  # medium and big humans
+                continue
+
+            image_id = ann['image_id']
 
             if image_id not in pre_annotations:
                 pre_annotations[image_id] = []
 
             pre_annotations[image_id].append(ann)
-
 
         for image in images:
             image_id = image['id']
@@ -89,10 +92,34 @@ class Utils:
             return img
 
     @staticmethod
+    def generate_map(img, current_anns):
+        masks = []
+        for cur_ann in current_anns:
+            segmentation = cur_ann["segmentation"]
+
+            for seg_map in segmentation:
+                len_seg_map = len(seg_map)
+
+                if len_seg_map < 10:
+                    continue
+
+                poly = np.array(seg_map).reshape((int(len_seg_map / 2), 2))
+
+                mask = np.zeros((img.shape[0], img.shape[1]))
+                cv2.fillConvexPoly(mask, np.int32([poly]), 1)
+                mask = mask.astype(np.bool)
+
+                out = np.zeros_like(img)
+                out[mask] = img[mask]
+                masks.append(mask)
+
+        return masks
+
+    @staticmethod
     def generate_coco_subset():
         ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
 
-        pre_images, pre_annotations = Utils.preprocess_coco_ann(ann_path)
+        pre_images, pre_annotations = GeneralUtils.preprocess_coco_ann(ann_path)
 
         is_skip = False
         is_quit = False
@@ -106,51 +133,42 @@ class Utils:
                 continue
 
             current_img_ann = pre_images[curr_ann_key]
-            current_ann = pre_annotations[curr_ann_key]
+            current_anns = pre_annotations[curr_ann_key]
             img_url = current_img_ann["coco_url"]
 
-            img = Utils.load_image(img_url)
+            img = GeneralUtils.load_image(img_url)
 
-            for cur_ann in current_ann:
-                if is_skip or is_quit:
+            masks = GeneralUtils.generate_map(img, current_anns)
+
+            # merge all masks !
+            global_mask = np.sum(np.array(masks), axis=0)
+            masks = [global_mask]
+            # # !!!
+
+            for mask in masks:
+                try:
+                    copy_img = GeneralUtils.apply_mask(img, mask, [125, 125, 125]) # here
+                except Exception as e:
+                    print(e)
                     continue
 
-                segmentation = cur_ann["segmentation"]
-                polies = []
-                for seg_map in segmentation:
-                    len_seg_map = len(seg_map)
+                cv2.imshow('lalala', copy_img)
 
-                    if len_seg_map < 10:
-                        continue
-
-                    polies.append(np.array(seg_map).reshape((int(len_seg_map / 2), 2)))
-
-                for poly in polies:
-                    mask = np.zeros((img.shape[0], img.shape[1]))
-
-                    cv2.fillConvexPoly(mask, np.int32([poly]), 1)
-                    mask = mask.astype(np.bool)
-                    out = np.zeros_like(img)
-                    out[mask] = img[mask]
-
-                    img = Utils.apply_mask(img, mask, [125, 125, 125])
-
-                    cv2.imshow('lalala', img)
-                    key = cv2.waitKey(0)
-                    if key == 27:
-                        cv2.destroyAllWindows()
-                        continue
-
-                    elif key == ord("n"):
-                        is_skip = True
-                        cv2.destroyAllWindows()
-                        continue
-
-                    elif key == ord("q"):
-                        is_quit = is_quit
-                        cv2.destroyAllWindows()
-                        continue
+                key = cv2.waitKey(0)
+                if key == 27:
+                    cv2.destroyAllWindows()
+                    continue
+                #
+                # elif key == ord("n"):
+                #     is_skip = True
+                #     cv2.destroyAllWindows()
+                #     continue
+                #
+                # elif key == ord("q"):
+                #     is_quit = is_quit
+                #     cv2.destroyAllWindows()
+                #     continue
 
 
 if __name__ == "__main__":
-    Utils.generate_coco_subset()
+    GeneralUtils.generate_coco_subset()

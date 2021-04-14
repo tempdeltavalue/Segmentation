@@ -2,7 +2,7 @@ from YolactPytorch.data import COLORS
 from YolactPytorch.yolact import Yolact
 from YolactPytorch.utils.augmentations import FastBaseTransform
 from YolactPytorch.layers.output_utils import postprocess
-from utils import Utils
+from general_utils import GeneralUtils
 
 from YolactPytorch.data import cfg, set_cfg
 
@@ -235,7 +235,7 @@ if __name__ == '__main__':
         if args.cuda:
             net = net.cuda()
 
-        img = Utils.get_image(args.img_path)
+        img = GeneralUtils.get_image(args.img_path)
 
         frame = torch.from_numpy(img).cuda().float()
         batch = FastBaseTransform()(frame.unsqueeze(0))

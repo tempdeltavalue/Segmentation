@@ -6,13 +6,13 @@ import cv2
 from keras_deeplab_v3_plus.model import Deeplabv3
 from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
 
-from utils import Utils
+from general_utils import GeneralUtils
 <<<<<<< HEAD
 import argparse
 
 def main(weights, img_path):
     trained_image_width = 512
-    image = Utils.get_image(img_path) #cv2.imread(r'C:\Users\m\Desktop\Image Segmentation\keras_deeplab_v3_plus\imgs\image1.jpg')
+    image = GeneralUtils.get_image(img_path) #cv2.imread(r'C:\Users\m\Desktop\Image Segmentation\keras_deeplab_v3_plus\imgs\image1.jpg')
 
     # resize to max dimension of images from training dataset
     w, h, _ = image.shape

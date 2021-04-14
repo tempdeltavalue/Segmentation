@@ -12,10 +12,8 @@ import cv2
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
 
-from utils import (
-    load_image,
-    preprocess_coco_ann
-)
+
+from general_utils import GeneralUtils
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -27,10 +25,18 @@ class AEDataset(Dataset):
         transform=None,
     ):
 
-        self.pre_images, self.pre_annotations = preprocess_coco_ann(csv_file)
+        self.pre_images, self.pre_annotations = GeneralUtils.preprocess_coco_ann(csv_file)
 
         self.image_size = image_size
         self.transform = transform
+
+        self.train_loader = torch.utils.data.DataLoader(self,
+                                                        batch_size=8,
+                                                        shuffle=True)
+
+        self.test_loader = torch.utils.data.DataLoader(self, 
+                                                       batch_size=8,
+                                                       shuffle=True)
 
     def __len__(self):
         return len(list(self.pre_images.keys()))
@@ -38,18 +44,22 @@ class AEDataset(Dataset):
     def __getitem__(self, index):
         curr_ann_key = list(self.pre_images.keys())[index]
         current_img_ann = self.pre_images[curr_ann_key]
-        current_ann = self.pre_annotations[curr_ann_key]
+        current_anns = self.pre_annotations[curr_ann_key]
         img_url = current_img_ann["coco_url"]
-        image = load_image(img_url)
+
+        image = GeneralUtils.load_image(img_url)
+        masks = GeneralUtils.generate_map(image, current_anns)
+
+        # merge all masks !
+        global_mask = np.sum(np.array(masks), axis=0)
+        # # !!!
 
         # if self.transform:
         #     augmentations = self.transform(image=image, bboxes=bboxes)
         #     image = augmentations["image"]
         #     bboxes = augmentations["bboxes"]
 
-        targets = []
-
-        return image, tuple(targets)
+        return image, global_mask
 
 
 def test():
@@ -63,7 +73,7 @@ def test():
 
     for image, segmap in loader:
         print("image s", image[0].shape)
-        tst_img = np.array(image[0])
+        tst_img, mask = np.array(image[0])
         cv2.imshow("test image", tst_img)
         cv2.waitKey(0)
 

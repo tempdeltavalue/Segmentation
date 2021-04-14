@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-from utils import Utils
+from general_utils import GeneralUtils
 
 # Root directory of the project
 ROOT_DIR = os.getcwd() #os.path.abspath("../")
@@ -67,7 +67,7 @@ def prepare_MASK_RCNN(weights):
     return model
 
 def test_MASK_RCNN(weights, img_path):
-    image = Utils.get_image(img_path)
+    image = GeneralUtils.get_image(img_path)
     model = prepare_MASK_RCNN(weights)
     # Run detection
     start_time = time.time()

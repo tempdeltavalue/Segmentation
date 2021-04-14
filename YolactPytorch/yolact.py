@@ -683,7 +683,7 @@ class Yolact(nn.Module):
 
 # Some testing code
 if __name__ == '__main__':
-    from utils.functions import init_console
+    from general_utils.functions import init_console
 
     init_console()
 

@@ -4,18 +4,19 @@ from torch import nn, optim
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 
+from dataset import AEDataset
 import sys
 sys.path.append('../')
 from architectures import FC_Encoder, FC_Decoder, CNN_Encoder, CNN_Decoder
-from datasets import MNIST, EMNIST, FashionMNIST
 
 class Network(nn.Module):
-    def __init__(self, args):
+    def __init__(self):
         super(Network, self).__init__()
-        output_size = args.embedding_size
-        self.encoder = CNN_Encoder(output_size)
+        embedding_size = 128
 
-        self.decoder = CNN_Decoder(args.embedding_size)
+        output_size = embedding_size
+        self.encoder = CNN_Encoder(output_size)
+        self.decoder = CNN_Decoder(embedding_size)
 
     def encode(self, x):
         return self.encoder(x)
@@ -28,27 +29,18 @@ class Network(nn.Module):
         return self.decode(z)
 
 class AE(object):
-    def __init__(self, args):
-        self.args = args
-        self.device = torch.device("cuda" if args.cuda else "cpu")
-        self._init_dataset()
+    def __init__(self):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
+
+        self.data = AEDataset(csv_file=ann_path)
+
         self.train_loader = self.data.train_loader
         self.test_loader = self.data.test_loader
 
-        self.model = Network(args)
+        self.model = Network()
         self.model.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-
-    def _init_dataset(self):
-        if self.args.dataset == 'MNIST':
-            self.data = MNIST(self.args)
-        elif self.args.dataset == 'EMNIST':
-            self.data = EMNIST(self.args)
-        elif self.args.dataset == 'FashionMNIST':
-            self.data = FashionMNIST(self.args)
-        else:
-            print("Dataset not supported")
-            sys.exit()
 
     def loss_function(self, recon_x, x):
         BCE = F.binary_cross_entropy(recon_x, x.view(-1, 784), reduction='sum')
