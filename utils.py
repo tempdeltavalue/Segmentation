@@ -47,82 +47,110 @@ class Utils:
                                       image[:, :, c])
         return image
 
+    @staticmethod
+    def preprocess_coco_ann(ann_path):
+        pre_images = {}
+        pre_annotations = {}
+
+        with open(ann_path) as f:
+            data = json.load(f)
+
+            images = data["images"]
+            annotations = data["annotations"]
+
+        for ann in annotations:
+            image_id = ann['image_id']
+            category_id = ann['category_id']
+            area = ann['area']
+
+            if image_id not in pre_annotations:
+                pre_annotations[image_id] = []
+
+            pre_annotations[image_id].append(ann)
+
+
+        for image in images:
+            image_id = image['id']
+
+            if image_id in pre_images:
+                print("ERROR: Skipping duplicate image id: {}".format(image))
+            elif image_id in pre_annotations:
+                pre_images[image_id] = image
+
+        return pre_images, pre_annotations
+
+    @staticmethod
+    def load_image(url):
+        with urllib.request.urlopen(url) as url:
+            s = url.read()
+
+            arr = np.asarray(bytearray(s), dtype=np.uint8)
+            img = cv2.imdecode(arr, -1)  # 'Load it as it is'
+            return img
 
     @staticmethod
     def generate_coco_subset():
         ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
 
-        result_dict = {}
+        pre_images, pre_annotations = Utils.preprocess_coco_ann(ann_path)
 
-        with open(ann_path) as f:
-            data = json.load(f)
-            images = data["images"]
-            annotations = data["annotations"]
+        is_skip = False
+        is_quit = False
 
-            save_root_path = r"C:\Users\m\Desktop\COCOtestset"
-            save_base_path = save_root_path + r"\new_val2017"
-            saved_imgs_count = 0
-            print("len images", len(images))
-            for img_data in images:
-                img_id = img_data["id"]
-                # if img_id != 183666:
-                #     continue
-                print("VOVA")
+        for curr_ann_key in list(pre_images.keys()):
+            if is_quit:
+                break
 
-                if saved_imgs_count > 100:
-                    break
+            if is_skip:
+                is_skip = False
+                continue
 
-                for ann in annotations:
-                    category_id = ann["category_id"]
+            current_img_ann = pre_images[curr_ann_key]
+            current_ann = pre_annotations[curr_ann_key]
+            img_url = current_img_ann["coco_url"]
 
-                    if category_id == 1 and ann["image_id"] == img_id:
-                        # segmentation_maps = ann["segmentation"]
-                        # box = ann["bbox"]
-                        # for seg_map in segmentation_maps:
-                        #     poly = np.array(seg_map).reshape((int(len(seg_map)/2), 2))
+            img = Utils.load_image(img_url)
 
-                        url = img_data["coco_url"]
-                        start_time = time.time()
-                        try:
-                            with urllib.request.urlopen(url) as url:
-                                s = url.read()
+            for cur_ann in current_ann:
+                if is_skip or is_quit:
+                    continue
 
-                                arr = np.asarray(bytearray(s), dtype=np.uint8)
-                                img = cv2.imdecode(arr, -1)  # 'Load it as it is'
+                segmentation = cur_ann["segmentation"]
+                polies = []
+                for seg_map in segmentation:
+                    len_seg_map = len(seg_map)
 
-                                img_file_name = img_data["file_name"]
-                                img_save_path = os.path.join(save_base_path, img_file_name)
+                    if len_seg_map < 10:
+                        continue
 
-                                if img_file_name not in result_dict:
-                                    result_dict[img_file_name] = []
+                    polies.append(np.array(seg_map).reshape((int(len_seg_map / 2), 2)))
 
-                                result_dict[img_file_name].append(ann["bbox"])
+                for poly in polies:
+                    mask = np.zeros((img.shape[0], img.shape[1]))
 
-                                cv2.imwrite(img_save_path, img)
-                                saved_imgs_count += 1
-                                print("saved_imgs_count", saved_imgs_count)
-                                print("LOADING TIME", time.time() - start_time)
-                                # mask = np.zeros((img.shape[0], img.shape[1]))
-                                #
-                                # cv2.fillConvexPoly(mask, np.int32([poly]), 1)
-                                # mask = mask.astype(np.bool)
-                                # out = np.zeros_like(img)
-                                # out[mask] = img[mask]
+                    cv2.fillConvexPoly(mask, np.int32([poly]), 1)
+                    mask = mask.astype(np.bool)
+                    out = np.zeros_like(img)
+                    out[mask] = img[mask]
 
-                                # img = Utils.apply_mask(img, mask, [125, 125, 125])
-                            # cv2.imshow('lalala', img)
-                            # if cv2.waitKey() & 0xff == 27:
-                            #     continue
+                    img = Utils.apply_mask(img, mask, [125, 125, 125])
 
-                        except Exception as e:
-                            print("Error", e)
+                    cv2.imshow('lalala', img)
+                    key = cv2.waitKey(0)
+                    if key == 27:
+                        cv2.destroyAllWindows()
+                        continue
 
-        print("result_dict", result_dict)
+                    elif key == ord("n"):
+                        is_skip = True
+                        cv2.destroyAllWindows()
+                        continue
 
-        print("PRE JSON SAVED")
-        with open(save_root_path + '/data.json', 'w') as fp:
-            print("JSON SAVED")
-            json.dump(result_dict, fp)
+                    elif key == ord("q"):
+                        is_quit = is_quit
+                        cv2.destroyAllWindows()
+                        continue
+
 
 if __name__ == "__main__":
     Utils.generate_coco_subset()
