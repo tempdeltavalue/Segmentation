@@ -1,4 +1,4 @@
-"# Segmantation" 
+"# Segmentation" 
 
 https://github.com/dariocazzani/pytorch-AE
 
