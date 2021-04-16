@@ -48,6 +48,9 @@ class AEDataset(Dataset):
                                                        batch_size=8,
                                                        shuffle=True)
 
+        self.prev_img = None
+        self.prev_mask = None
+
     def __len__(self):
         return len(list(self.pre_images.keys()))
 
@@ -59,6 +62,8 @@ class AEDataset(Dataset):
 
         image = GeneralUtils.load_image(img_url)
 
+        if len(image.shape) < 3:
+            return self.prev_img, self.prev_mask
 
         masks = GeneralUtils.generate_map(image, current_anns)
 
@@ -77,6 +82,10 @@ class AEDataset(Dataset):
         # # just for training (breaks viz)
         global_mask.resize((1, 63, 63),
                            refcheck=False)
+
+        self.prev_img = image
+        self.prev_mask = global_mask
+
         # print("mask resized shape", global_mask.shape)
         # # !!!
 
