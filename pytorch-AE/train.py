@@ -2,14 +2,15 @@ import argparse, os, sys
 import numpy as np
 import imageio
 from scipy import ndimage
-
 import torch
 from torchvision.utils import save_image
+
 
 from VAE import VAE
 from AE import AE
 
 from utils import get_interpolations
+
 
 parser = argparse.ArgumentParser(
         description='Main function to call training for different AutoEncoders')
@@ -36,10 +37,8 @@ args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 torch.manual_seed(args.seed)
 
-vae = VAE()
 ae = AE(r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json")
-architectures = {'AE':  ae,
-                 'VAE': vae}
+architectures = {'AE':  ae}
 
 print(args.model)
 if __name__ == "__main__":

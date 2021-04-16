@@ -41,7 +41,6 @@ class Encoder(nn.Module):
         x = F.max_pool2d(x, kernel_size=2)
 
         x = x.view(x.size(0), -1)
-        print("x.shape", x.shape)
 
         # x = self.fcn(x)
         return x
@@ -60,7 +59,6 @@ class Decoder(nn.Module):
         self.conv3_6 = nn.ConvTranspose2d(16, 1, 5, stride=2)
 
 
-
     def forward(self, imgs):
         x = imgs
         x = x.view(x.size(0), 64, 1, 1)
@@ -71,6 +69,8 @@ class Decoder(nn.Module):
         x = self.conv3_4(x)
         x = self.conv3_5(x)
         x = self.conv3_6(x)
+
+        x = nn.Softmax2d()(x)
 
         return x
 
@@ -120,7 +120,7 @@ class AE(object):
             loss.backward()
             train_loss += loss.item()
             self.optimizer.step()
-            if batch_idx % self.args.log_interval == 0:
+            if batch_idx % 10 == 0:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data), len(self.train_loader.dataset),
                     100. * batch_idx / len(self.train_loader),

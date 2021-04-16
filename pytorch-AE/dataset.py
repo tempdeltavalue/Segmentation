@@ -8,11 +8,14 @@ import pandas as pd
 import torch
 import json
 
+import sys
+
+
 import cv2
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
 
-
+#sys.path.append(r"C:\Users\m\Desktop\Segmentation")
 from general_utils import GeneralUtils
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
