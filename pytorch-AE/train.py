@@ -6,8 +6,8 @@ from scipy import ndimage
 import torch
 from torchvision.utils import save_image
 
-from models.VAE import VAE
-from models.AE import AE
+from VAE import VAE
+from AE import AE
 
 from utils import get_interpolations
 
@@ -37,7 +37,7 @@ args.cuda = not args.no_cuda and torch.cuda.is_available()
 torch.manual_seed(args.seed)
 
 vae = VAE()
-ae = AE()
+ae = AE(r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json")
 architectures = {'AE':  ae,
                  'VAE': vae}
 

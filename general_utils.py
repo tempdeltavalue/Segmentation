@@ -62,7 +62,10 @@ class GeneralUtils:
             category_id = ann['category_id']
             area = ann['area']
 
-            if category_id != 1 or area < 2000:  # medium and big humans
+            if type(ann["segmentation"]) == dict:
+                continue
+
+            if category_id != 1 or area < 3000:  # medium-big and big humans
                 continue
 
             image_id = ann['image_id']

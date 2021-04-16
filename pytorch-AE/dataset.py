@@ -17,12 +17,19 @@ from general_utils import GeneralUtils
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+import albumentations as A
+
+transform = A.Compose([
+    A.Resize(width=224, height=224),
+    A.HorizontalFlip(p=0.5),
+    A.RandomBrightnessContrast(p=0.2),
+])
+
 class AEDataset(Dataset):
     def __init__(
         self,
         csv_file,
-        image_size=416,
-        transform=None,
+        image_size=416
     ):
 
         self.pre_images, self.pre_annotations = GeneralUtils.preprocess_coco_ann(csv_file)
@@ -34,7 +41,7 @@ class AEDataset(Dataset):
                                                         batch_size=8,
                                                         shuffle=True)
 
-        self.test_loader = torch.utils.data.DataLoader(self, 
+        self.test_loader = torch.utils.data.DataLoader(self,
                                                        batch_size=8,
                                                        shuffle=True)
 
@@ -48,16 +55,26 @@ class AEDataset(Dataset):
         img_url = current_img_ann["coco_url"]
 
         image = GeneralUtils.load_image(img_url)
+
+
         masks = GeneralUtils.generate_map(image, current_anns)
 
         # merge all masks !
         global_mask = np.sum(np.array(masks), axis=0)
         # # !!!
 
-        # if self.transform:
-        #     augmentations = self.transform(image=image, bboxes=bboxes)
-        #     image = augmentations["image"]
-        #     bboxes = augmentations["bboxes"]
+        augmentations = transform(image=image, mask=global_mask)
+        image = augmentations["image"]
+
+        image = np.moveaxis(image, -1, 0)
+
+        global_mask = augmentations["mask"]
+
+        # HZ how add separate transform for mask
+        # # just for training (breaks viz)
+        global_mask.resize((1, 101, 101), refcheck=False)
+        # print("mask resized shape", global_mask.shape)
+        # # !!!
 
         return image, global_mask
 
@@ -71,14 +88,30 @@ def test():
                         batch_size=1,
                         shuffle=True)
 
-    for image, segmap in loader:
-        print("image s", image[0].shape)
-        tst_img, mask = np.array(image[0])
-        cv2.imshow("test image", tst_img)
-        cv2.waitKey(0)
+    for img, mask in loader:
+        # print("img.shape", img.shape)
+        # print("mask.shape", mask.shape)
+        #
+        # img = np.array(img[0])
+
+        continue
+
+        try:
+            copy_img = GeneralUtils.apply_mask(img,
+                                               mask,
+                                               [125, 125, 125])  # here
+        except Exception as e:
+            print(e)
+            continue
+
+        cv2.imshow('lalala', copy_img)
+
+        key = cv2.waitKey(0)
+        if key == 27:
+            cv2.destroyAllWindows()
+            continue
 
         return
-
 
 
 if __name__ == "__main__":

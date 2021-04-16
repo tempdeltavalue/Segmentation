@@ -4,7 +4,7 @@ from torch import nn, optim
 from torch.nn import functional as F
 
 import sys
-sys.path.append('../')
+sys.path.append('/')
 from architectures import FC_Encoder, FC_Decoder, CNN_Encoder, CNN_Decoder
 from dataset import AEDataset
 
