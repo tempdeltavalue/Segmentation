@@ -7,7 +7,7 @@ import os
 import pandas as pd
 import torch
 import json
-
+import glob
 import sys
 
 
@@ -37,6 +37,8 @@ class AEDataset(Dataset):
 
         self.pre_images, self.pre_annotations = GeneralUtils.preprocess_coco_ann(csv_file)
 
+        self.image_paths = glob.glob(os.path.join(r"C:\Users\m\Desktop\COCOhumanTrainSubset", "*"))
+
         self.image_size = image_size
         self.transform = transform
 
@@ -52,15 +54,20 @@ class AEDataset(Dataset):
         self.prev_mask = None
 
     def __len__(self):
-        return len(list(self.pre_images.keys()))
+        return len(self.image_paths)
+
+        #return len(list(self.pre_images.keys()))
 
     def __getitem__(self, index):
-        curr_ann_key = list(self.pre_images.keys())[index]
-        current_img_ann = self.pre_images[curr_ann_key]
+        #curr_ann_key = list(self.pre_images.keys())[index]
+        path = self.image_paths[index]
+        curr_ann_key = int(path.split("\\")[-1].split(".")[0])
         current_anns = self.pre_annotations[curr_ann_key]
-        img_url = current_img_ann["coco_url"]
 
-        image = GeneralUtils.load_image(img_url)
+        # current_img_ann = self.pre_images[curr_ann_key]
+        # img_url = current_img_ann["coco_url"]
+
+        image = cv2.imread(path)  #GeneralUtils.load_image(img_url)
 
         if len(image.shape) < 3:
             return self.prev_img, self.prev_mask

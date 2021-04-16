@@ -120,14 +120,18 @@ class GeneralUtils:
 
     @staticmethod
     def generate_coco_subset():
+        max_count = 1000
+        counter = 0
         ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
 
         pre_images, pre_annotations = GeneralUtils.preprocess_coco_ann(ann_path)
 
         is_skip = False
         is_quit = False
-
-        for curr_ann_key in list(pre_images.keys()):
+        paths = glob.glob(os.path.join(r"C:\Users\m\Desktop\COCOhumanTrainSubset", "*"))
+        for path in paths:
+            curr_ann_key = int(path.split("\\")[-1].split(".")[0])
+        # for curr_ann_key in list(pre_images.keys()):
             if is_quit:
                 break
 
@@ -135,11 +139,21 @@ class GeneralUtils:
                 is_skip = False
                 continue
 
-            current_img_ann = pre_images[curr_ann_key]
-            current_anns = pre_annotations[curr_ann_key]
-            img_url = current_img_ann["coco_url"]
+            # current_img_ann = pre_images[curr_ann_key]
+            # img_url = current_img_ann["coco_url"]
+            # file_name = str(current_img_ann["id"]) + ".jpg"
 
-            img = GeneralUtils.load_image(img_url)
+            current_anns = pre_annotations[curr_ann_key]
+            img = cv2.imread(path) #GeneralUtils.load_image(img_url)
+            # save_path = os.path.join(r"C:\Users\m\Desktop\COCOhumanTrainSubset", file_name)
+            # cv2.imwrite(save_path, img)
+            # print(save_path)
+            # counter += 1
+
+            # if max_count == counter:
+            #     return
+
+            # continue
 
             masks = GeneralUtils.generate_map(img, current_anns)
 

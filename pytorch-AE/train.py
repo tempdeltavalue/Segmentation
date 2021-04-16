@@ -59,7 +59,7 @@ if __name__ == "__main__":
     try:
         for epoch in range(1, args.epochs + 1):
             autoenc.train(epoch)
-            autoenc.test(epoch)
+            #autoenc.test(epoch)
     except (KeyboardInterrupt, SystemExit):
         print("Manual Interruption")
 
