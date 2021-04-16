@@ -10,65 +10,79 @@ sys.path.append('/')
 from architectures import FC_Encoder, FC_Decoder, CNN_Encoder, CNN_Decoder
 
 import torch
+import torchvision
 import torch.nn.functional as F
 import torch.nn as nn
 
 
 class Encoder(nn.Module):
-    def __init__(self, hidden_size):
+    def __init__(self):
         super().__init__()
-        self.hidden_size = hidden_size
-        self.conv1_1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3)
-        self.conv1_2 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, stride=2)
-        self.conv2_1 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, stride=2)
-        self.conv2_2 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, stride=2)
-        self.conv3_1 = nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3)
+
+        model = torchvision.models.resnet101(pretrained=True)
+        for index, param in enumerate(model.parameters()):
+            param.requires_grad =  index > 280
+
+        self.basemodel = nn.Sequential(*list(model.children())[:-2])
+
         # self.fcn = nn.Linear(in_features=1024, out_features=hidden_size)
 
-    def forward(self, imgs):
-        x = imgs
-        x = self.conv1_1(x)
-        x = F.relu(x)
-        x = self.conv1_2(x)
-        x = F.relu(x)
-        x = F.max_pool2d(x, kernel_size=2)
-
-        x = F.relu(self.conv2_1(x))
-        x = F.relu(self.conv2_2(x))
-        x = F.max_pool2d(x, kernel_size=2)
-
-        x = F.relu(self.conv3_1(x))
-        x = F.max_pool2d(x, kernel_size=2)
-
-        x = x.view(x.size(0), -1)
-
-        # x = self.fcn(x)
+    def forward(self, x):
+        x = self.basemodel(x)
         return x
 
 
-class Decoder(nn.Module):
-    def __init__(self, hidden_size):
+class PrimitiveResBlock(nn.Module):
+    def __init__(self, inplanes, planes, stride):
         super().__init__()
-        self.hidden_size = 64 #hidden_size
+        self.conv1 = nn.ConvTranspose2d(inplanes,
+                               planes,
+                               kernel_size=3,
+                               stride=stride)
 
-        self.conv3_1 = nn.ConvTranspose2d(64, 16, 3)
-        self.conv3_2 = nn.ConvTranspose2d(16, 16, 3)
-        self.conv3_3 = nn.ConvTranspose2d(16, 16, 3, stride=2)
-        self.conv3_4 = nn.ConvTranspose2d(16, 16, 3, stride=2)
-        self.conv3_5 = nn.ConvTranspose2d(16, 16, 5, stride=2)
-        self.conv3_6 = nn.ConvTranspose2d(16, 1, 5, stride=2)
+        self.conv1x1 = nn.Conv2d(inplanes, planes, kernel_size=1, padding=2)
+
+        self.bn = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        identity = self.conv1x1(x)
+
+        out = self.conv1(x)
+        out = self.bn(out)
+        out = self.relu(out)
+
+        h_comp = out.shape[3] - identity.shape[3]
+        w_comp = out.shape[2] - identity.shape[2]
+        # without /2 round here
+        identity = nn.ConstantPad2d((w_comp, 0, h_comp, 0), 0)(identity)
+        out += identity
+        out = self.relu(out)
+        return out
+
+class Decoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = PrimitiveResBlock(2048, 32, stride=2)
+        self.conv2 = PrimitiveResBlock(32, 64, stride=2)
+        self.conv3 = PrimitiveResBlock(64, 64, stride=2)
+        self.conv4 = PrimitiveResBlock(64, 1, stride=2)
+
+        # self.conv3_1 = nn.ConvTranspose2d(2048, 32, 3)
+        # self.conv3_2 = nn.ConvTranspose2d(32, 32, 3)
+        # self.conv3_3 = nn.ConvTranspose2d(32, 32, 3, stride=2)
+        # self.conv3_4 = nn.ConvTranspose2d(32, 64, 3, stride=2)
+        # self.conv3_5 = nn.ConvTranspose2d(64, 64, 3, stride=2)
+        # self.conv3_6 = nn.ConvTranspose2d(64, 1, 3)
 
 
-    def forward(self, imgs):
-        x = imgs
-        x = x.view(x.size(0), 64, 1, 1)
-
-        x = self.conv3_1(x)
-        x = self.conv3_2(x)
-        x = self.conv3_3(x)
-        x = self.conv3_4(x)
-        x = self.conv3_5(x)
-        x = self.conv3_6(x)
+    def forward(self, x):
+        # x = imgs
+        # x = x.view(x.size(0), 64, 1, 1)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
 
         x = nn.Softmax2d()(x)
 
@@ -76,11 +90,10 @@ class Decoder(nn.Module):
 
 
 class AutoEncoder(nn.Module):
-    def __init__(self, hidden_size):
+    def __init__(self):
         super().__init__()
-        self.hidden_size = hidden_size
-        self.encoder = Encoder(hidden_size)
-        self.decoder = Decoder(hidden_size)
+        self.encoder = Encoder()
+        self.decoder = Decoder()
 
     def forward(self, imgs):
         x = imgs
@@ -97,7 +110,7 @@ class AE(object):
         self.train_loader = self.data.train_loader
         self.test_loader = self.data.test_loader
 
-        self.model = AutoEncoder(hidden_size=224)
+        self.model = AutoEncoder()
 
         self.model.to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
@@ -141,12 +154,17 @@ class AE(object):
         test_loss /= len(self.test_loader.dataset)
         print('====> Test set loss: {:.4f}'.format(test_loss))
 
-
 if __name__ == '__main__':
-    model = AutoEncoder(hidden_size=256)
+    # model = torchvision.models.resnet101(pretrained=True)
+    # model = Encoder()
+    model = AutoEncoder()
+    # model = PrimitiveResBlock(3, 32, stride=2)
     x = torch.randn(1, 3, 224, 224)
 
-    # Let's print it
+
+    # model = AutoEncoder(hidden_size=256)
+    # #
+    # # # Let's print it
     preds = model(x)
     pytorch_total_params = sum(p.numel() for p in model.parameters())
 
