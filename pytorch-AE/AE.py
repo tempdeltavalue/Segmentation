@@ -65,8 +65,7 @@ class Decoder(nn.Module):
         super().__init__()
         self.conv1 = PrimitiveResBlock(2048, 32, stride=2)
         self.conv2 = PrimitiveResBlock(32, 64, stride=2)
-        self.conv3 = PrimitiveResBlock(64, 64, stride=2)
-        self.conv4 = PrimitiveResBlock(64, 1, stride=2)
+        self.conv3 = PrimitiveResBlock(64, 1, stride=2)
 
         # self.conv3_1 = nn.ConvTranspose2d(2048, 32, 3)
         # self.conv3_2 = nn.ConvTranspose2d(32, 32, 3)
@@ -82,7 +81,6 @@ class Decoder(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-        x = self.conv4(x)
 
         x = nn.Softmax2d()(x)
 

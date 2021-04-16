@@ -75,7 +75,7 @@ class AEDataset(Dataset):
 
         # HZ how add separate transform for mask
         # # just for training (breaks viz)
-        global_mask.resize((1, 127, 127),
+        global_mask.resize((1, 63, 63),
                            refcheck=False)
         # print("mask resized shape", global_mask.shape)
         # # !!!
