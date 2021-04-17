@@ -631,7 +631,7 @@ class FastBaseTransform(torch.nn.Module):
         self.mean = self.mean.to(img.device)
         self.std  = self.std.to(img.device)
         
-        # img assumed to be a pytorch BGR image with channel order [n, h, w, c]
+        # img assumed to be a AEPytorch BGR image with channel order [n, h, w, c]
         if cfg.preserve_aspect_ratio:
             _, h, w, _ = img.size()
             img_size = Resize.calc_size_preserve_ar(w, h, cfg.max_size)

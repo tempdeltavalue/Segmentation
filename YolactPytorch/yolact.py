@@ -513,7 +513,7 @@ class Yolact(nn.Module):
             # See issue #127 for why we need such a complicated condition if the module is a WeakScriptModuleProxy
             # Broke in 1.3 (see issue #175), WeakScriptModuleProxy was turned into just ScriptModule.
             # Broke in 1.4 (see issue #292), where RecursiveScriptModule is the new star of the show.
-            # Note that this might break with future pytorch updates, so let me know if it does
+            # Note that this might break with future AEPytorch updates, so let me know if it does
             is_script_conv = False
             if 'Script' in type(module).__name__:
                 # 1.4 workaround: now there's an original_name member so just use that

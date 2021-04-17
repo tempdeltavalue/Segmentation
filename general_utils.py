@@ -159,6 +159,11 @@ class GeneralUtils:
 
             # merge all masks !
             global_mask = np.sum(np.array(masks), axis=0)
+            import sys
+            import numpy
+            numpy.set_printoptions(threshold=sys.maxsize)
+
+            print(global_mask)
             masks = [global_mask]
             # # !!!
 

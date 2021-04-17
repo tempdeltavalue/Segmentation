@@ -46,7 +46,7 @@ def nvsmi_available() -> bool:
 
 
 def visible_gpus() -> list:
-    """ Returns a list of the indexes of all the gpus visible to pytorch. """
+    """ Returns a list of the indexes of all the gpus visible to AEPytorch. """
 
     if 'CUDA_VISIBLE_DEVICES' not in os.environ:
         return list(range(len(gpu_info())))
