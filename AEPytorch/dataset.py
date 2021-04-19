@@ -66,7 +66,7 @@ class AEDataset(Dataset):
 
         # current_img_ann = self.pre_images[curr_ann_key]
         # img_url = current_img_ann["coco_url"]
-        print("img path", path)
+        # print("img path", path)
         image = cv2.imread(path)  #GeneralUtils.load_image(img_url)
 
         if len(image.shape) < 3:
@@ -88,7 +88,7 @@ class AEDataset(Dataset):
         # HZ how add separate transform for mask
         # # just for training (breaks viz)
         # # smaller mask global_mask.resize((1, 63, 63), refcheck=False)
-        # global_mask.resize((1, 224, 224), refcheck=False)
+        global_mask.resize((1, 224, 224), refcheck=False)
 
         self.prev_img = image
         self.prev_mask = global_mask

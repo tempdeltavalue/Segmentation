@@ -19,6 +19,7 @@ from utils import plot_img_and_mask
 from dataset import AEDataset
 from torch.utils.data import DataLoader, random_split
 
+import cv2
 
 def predict_img(net,
                 full_img,
@@ -28,7 +29,7 @@ def predict_img(net,
     net.eval()
 
     dataset = AEDataset(csv_file=ann_path)
-    train_loader = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=8, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=8, pin_memory=True)
 
     #https://stackoverflow.com/questions/56838341/dataloader-object-does-not-support-indexing
     imgs = None
@@ -38,31 +39,36 @@ def predict_img(net,
         imgs = imgs
         true_masks = true_masks
         continue
-
-
-    imgs = imgs[0].to(device=device, dtype=torch.float32)
+    print("before pred imgs input shape", imgs.shape)
+    imgs = imgs.to(device=device, dtype=torch.float32)
 
     with torch.no_grad():
-        print("img input shape", img.shape)
-        output = net(imgs[None, ...])
+        print("img input shape", imgs.shape)
+        output = net(imgs)   #
+        print("output shape", output.shape)
 
         if net.n_classes > 1:
             probs = F.softmax(output, dim=1)
         else:
             probs = torch.sigmoid(output)
+        print("probs shape", probs.shape)
 
         probs = probs.squeeze(0)
-
+        print("probs after squeeze shape", probs.shape)
+        print("full_img.size()", full_img.size())
         tf = transforms.Compose(
             [
                 transforms.ToPILImage(),
-                transforms.Resize(full_img.size()[1]),
+                transforms.Resize(full_img.size()[2]),
                 transforms.ToTensor()
             ]
         )
-
+        print("probs.cpu() shape", probs.cpu().shape)
         probs = tf(probs.cpu())
+        print("probs after tf(probs.cpu())", probs.shape)
+
         full_mask = probs.squeeze().cpu().numpy()
+        print("full_mask shape", full_mask.shape)
 
     return full_mask > out_threshold
 
@@ -151,7 +157,7 @@ if __name__ == "__main__":
                            scale_factor=args.scale,
                            out_threshold=args.mask_threshold,
                            device=device)
-        print("finish pred")
+        print("finish pred mask shape", mask.shape)
 
         # if not args.no_save:
         #     out_fn = out_files[i]
@@ -161,4 +167,15 @@ if __name__ == "__main__":
         #     logging.info("Mask saved to {}".format(out_files[i]))
 
         logging.info("Visualizing results for image , close to continue ...")
-        plot_img_and_mask(img[0], mask)
+
+        print(" torch.__file__",  torch.__file__)
+        image = img[0]
+        image = image.permute(1, 2, 0)
+        print("image shape", image.shape)
+        print("mask shape", mask.shape)
+
+        image_2 = np.uint8(mask)
+        print("image_2.shape", image_2.shape)
+        cv2.imshow("test", image_2)
+        plot_img_and_mask(image, mask)
+
