@@ -13,3 +13,5 @@ https://colab.research.google.com/drive/1DGnnHiL-i2sbYe6-xqEOrYHXeD-8Y-1g#scroll
 
 
 
+U-Net micro weights
+https://www.dropbox.com/s/dx0qiino1lqymkg/CP_epoch40.pth?dl=0
