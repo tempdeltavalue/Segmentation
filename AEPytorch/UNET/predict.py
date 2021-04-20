@@ -41,7 +41,7 @@ def predict_img(net,
         continue
     print("before pred imgs input shape", imgs.shape)
     imgs = imgs.to(device=device, dtype=torch.float32)
-
+    masks = []
     with torch.no_grad():
         print("img input shape", imgs.shape)
         output = net(imgs)   #
@@ -68,9 +68,10 @@ def predict_img(net,
         print("probs after tf(probs.cpu())", probs.shape)
 
         full_mask = probs.squeeze().cpu().numpy()
+        masks.append(full_mask > out_threshold)
         print("full_mask shape", full_mask.shape)
 
-    return full_mask > out_threshold
+    return masks
 
 
 def get_args():
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 
     logging.info("Model loaded !")
 
-    ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
+    ann_path = r"C:\Users\m\Desktop\COCO\annotations\instances_train2017.json"
     dataset = AEDataset(csv_file=ann_path)
     print("dataset here")
 
@@ -145,19 +146,19 @@ if __name__ == "__main__":
     # n_train = len(dataset) - n_val
     # train, val = random_split(dataset, [n_train, n_val])
     # print("train", train)
-    train_loader = DataLoader(dataset, batch_size=8, shuffle=True, num_workers=1, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=1, pin_memory=True)
 
     for index,  (img, true_masks) in enumerate(train_loader):
         if index > 0:
             break
 
-        print("start pred")
-        mask = predict_img(net=net,
+        print("start pred img shape", img.shape)
+        masks = predict_img(net=net,
                            full_img=img,
                            scale_factor=args.scale,
                            out_threshold=args.mask_threshold,
                            device=device)
-        print("finish pred mask shape", mask.shape)
+        print("finish pred masks[0] shape", masks[0].shape)
 
         # if not args.no_save:
         #     out_fn = out_files[i]
@@ -169,13 +170,11 @@ if __name__ == "__main__":
         logging.info("Visualizing results for image , close to continue ...")
 
         print(" torch.__file__",  torch.__file__)
-        image = img[0]
-        image = image.permute(1, 2, 0)
-        print("image shape", image.shape)
-        print("mask shape", mask.shape)
 
-        image_2 = np.uint8(mask)
-        print("image_2.shape", image_2.shape)
-        cv2.imshow("test", image_2)
-        plot_img_and_mask(image, mask)
+        for index, t_img in enumerate(img):
+            image = t_img
+            image = image.permute(1, 2, 0)
+            print("image shape", image.shape)
+            print("mask shape", masks[index].shape)
+            plot_img_and_mask(image, masks[index])
 

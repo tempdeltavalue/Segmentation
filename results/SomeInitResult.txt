@@ -1,0 +1,58 @@
+Limit 150 
+
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.111
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.158
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.121
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.057
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.135
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.148
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.085
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.118
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.123
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.062
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.149
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.157
+Prediction time: 656.0213308334351. Average 1.3120426616668701/image
+Total time:  662.3283731937408
+
+Limit 500 (BOX)
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.377
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.556
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.418
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.187
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.435
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.557
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.305
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.432
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.444
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.220
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.504
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.630
+Prediction time: 2088.7357177734375. Average 4.177471435546875/image
+Total time:  2108.5128469467163
+
+Limit 500 SEGM
+Accumulating evaluation results...
+DONE (t=0.95s).
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.331
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.535
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.356
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.160
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.385
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.491
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.270
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.386
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.397
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.194
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.457
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.567
+Prediction time: 2090.286246776581. Average 4.180572493553162/image
+Total time:  2106.5752992630005
+
+Yolact(500)
+
+       |  all  |  .50  |  .55  |  .60  |  .65  |  .70  |  .75  |  .80  |  .85  |  .90  |  .95  |
+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+
+   box | 26.75 | 43.32 | 41.79 | 38.77 | 36.55 | 32.51 | 29.30 | 23.38 | 15.62 |  5.35 |  0.94 |
+  mask | 23.57 | 37.80 | 35.85 | 33.43 | 31.31 | 28.27 | 25.70 | 20.99 | 14.94 |  6.47 |  0.97 |
+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+-------+

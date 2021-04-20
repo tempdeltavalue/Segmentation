@@ -1,0 +1,7 @@
+python Mask_RCNN_tf_fork_matterport/samples/coco/coco.py evaluate --dataset=C:\Users\m\Desktop\COCOtestset --model=C:\Users\m\Desktop\segmentation_weights\mask_rcnn_coco.h5
+
+python YolactPytorch/eval.py --trained_model=C:\Users\m\Desktop\segmentation_weights\yolact_base_54_800000.pth --imgs_path=C:\Users\m\Desktop\COCOtestset\val2017 --annotation_path="C:\Users\m\Desktop\COCOtestset\annotations\instances_val2017.json"
+
+
+
+python run_yolact.py --trained_model=C:\Users\m\Desktop\segmentation_weights\yolact_base_54_800000.pth --img_path=C:\Users\m\Desktop\COCOtestset\val2017\COCO_val2014_000000000073.jpg

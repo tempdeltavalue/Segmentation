@@ -34,7 +34,7 @@ def train_net(net,
               img_scale=0.5):
 
     #dataset = BasicDataset(dir_img, dir_mask, img_scale)
-    ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
+    ann_path = r"C:\Users\m\Desktop\COCO\annotations\instances_train2017.json"
     dataset = AEDataset(csv_file=ann_path)
 
 
@@ -137,7 +137,7 @@ def get_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-e', '--epochs', metavar='E', type=int, default=55,
                         help='Number of epochs', dest='epochs')
-    parser.add_argument('-b', '--batch-size', metavar='B', type=int, nargs='?', default=1,
+    parser.add_argument('-b', '--batch-size', metavar='B', type=int, nargs='?', default=8,
                         help='Batch size', dest='batchsize')
     parser.add_argument('-l', '--learning-rate', metavar='LR', type=float, nargs='?', default=0.0001,
                         help='Learning rate', dest='lr')
