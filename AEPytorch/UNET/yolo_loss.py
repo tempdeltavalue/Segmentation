@@ -26,45 +26,30 @@ class YoloLoss(nn.Module):
         self.lambda_box = 10
 
     def forward(self, predictions, target):
-        obj = target[:, 4, :, :] == 1
-        noobj = target[:, 4, :, :] == 0
+        obj_target = target[:, 4, :, :]
+        obj_pred = predictions[:, 4, :, :]
 
-        object_loss = self.bce(
-            (predictions[:, 4, :, :][obj]), (target[:, 4, :, :][obj]),
-        )
+        obj = obj_target == 1
+        noobj = obj_target == 0
 
-        print("object_loss", object_loss)
+        object_loss = self.bce(self.sigmoid(obj_pred[obj]), self.sigmoid(obj_target[obj]))
 
-        no_object_loss = self.bce(
-            (predictions[:, 4, :, :][noobj]), (target[:, 4, :, :][noobj]),
-        )
-        print("no_object_loss", no_object_loss)
+
+        no_object_loss = self.bce(obj_pred[noobj], obj_target[noobj])
 
         target_boxes = target[:, 0:4, :, :]
         pred_boxes = predictions[:, 0:4, :, :]
+
         box_loss = self.mse(target_boxes, pred_boxes)
+
+        print("object_loss", object_loss)
+        print("no_object_loss", no_object_loss)
         print("box_loss", box_loss)
-
-        # ================== #
-        #   FOR CLASS LOSS   #
-        # ================== #
-        #
-        # class_loss = self.entropy(
-        #     (predictions[..., 5:][obj]), (target[..., 5][obj].long()),
-        # )
-
-        # print("__________________________________")
-        # print(self.lambda_box * box_loss)
-        # print(self.lambda_obj * object_loss)
-        # print(self.lambda_noobj * no_object_loss)
-        # print(self.lambda_class * class_loss)
-        # print("\n")
 
         return (
             self.lambda_box * box_loss
             + self.lambda_obj * object_loss
             + self.lambda_noobj * no_object_loss
-            # + self.lambda_class * class_loss
         )
 
 if __name__ == "__main__":

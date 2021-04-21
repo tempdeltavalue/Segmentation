@@ -82,17 +82,18 @@ def train_net(net,
                 imgs = imgs.to(device=device, dtype=torch.float32)
                 mask_type = torch.float32 if net.n_classes == 1 else torch.long
                 true_masks = true_masks.to(device=device, dtype=mask_type)
-                print("train img shapes", imgs.shape)
+                true_detection_anc = true_detection_anc.to(device=device)
+
                 masks_pred, detection_out = net(imgs)
 
                 detection_l = detection_loss(detection_out, true_detection_anc)
-
-                loss = criterion(masks_pred, true_masks) + float(detection_l)
+                mask_l = criterion(masks_pred, true_masks)
+                loss = mask_l + float(detection_l)
 
                 epoch_loss += loss.item()
                 # writer.add_scalar('Loss/train', loss.item(), global_step)
 
-                loss_string = "loss (batch) {} yolo loss {}".format(loss.item(), detection_l.item())
+                loss_string = "loss (batch) {} yolo loss {}".format(mask_l.item(), detection_l.item())
                 pbar.set_postfix(**{'loss (batch)': loss_string})
 
                 optimizer.zero_grad()
