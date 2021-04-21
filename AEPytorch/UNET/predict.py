@@ -22,30 +22,29 @@ from torch.utils.data import DataLoader, random_split
 import cv2
 
 def predict_img(net,
-                full_img,
+                imgs,
                 device,
+                true_masks,
                 scale_factor=1,
                 out_threshold=0.5):
     net.eval()
 
     dataset = AEDataset(csv_file=ann_path)
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=8, pin_memory=True)
 
     #https://stackoverflow.com/questions/56838341/dataloader-object-does-not-support-indexing
-    imgs = None
-    true_masks = None
 
-    for imgs, true_masks in train_loader:
-        imgs = imgs
-        true_masks = true_masks
-        continue
     print("before pred imgs input shape", imgs.shape)
     imgs = imgs.to(device=device, dtype=torch.float32)
+    true_masks = true_masks.to(device=device, dtype=torch.float32)
+    loss = torch.nn.BCEWithLogitsLoss()
     masks = []
     with torch.no_grad():
         print("img input shape", imgs.shape)
         output = net(imgs)   #
         print("output shape", output.shape)
+        print("true_masks shape", true_masks.shape)
+
+        print("BCEWithLogitsLoss shape", loss(output, true_masks))
 
         if net.n_classes > 1:
             probs = F.softmax(output, dim=1)
@@ -55,23 +54,20 @@ def predict_img(net,
 
         probs = probs.squeeze(0)
         print("probs after squeeze shape", probs.shape)
-        print("full_img.size()", full_img.size())
+        print("full_img.size()", imgs.size())
         tf = transforms.Compose(
             [
                 transforms.ToPILImage(),
-                transforms.Resize(full_img.size()[2]),
+                transforms.Resize(imgs.size()[2]),
                 transforms.ToTensor()
             ]
         )
-        print("probs.cpu() shape", probs.cpu().shape)
-        probs = tf(probs.cpu())
-        print("probs after tf(probs.cpu())", probs.shape)
+        for prob in probs:
+            probs = tf(prob.cpu())
+            full_mask = probs.squeeze().cpu().numpy()
+            masks.append(full_mask > out_threshold)
 
-        full_mask = probs.squeeze().cpu().numpy()
-        masks.append(full_mask > out_threshold)
-        print("full_mask shape", full_mask.shape)
-
-    return masks
+    return masks, output
 
 
 def get_args():
@@ -146,15 +142,15 @@ if __name__ == "__main__":
     # n_train = len(dataset) - n_val
     # train, val = random_split(dataset, [n_train, n_val])
     # print("train", train)
-    train_loader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=1, pin_memory=True)
+    train_loader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=1, pin_memory=True)
 
-    for index,  (img, true_masks) in enumerate(train_loader):
+    for index,  (imgs, true_masks) in enumerate(train_loader):
         if index > 0:
             break
 
-        print("start pred img shape", img.shape)
-        masks = predict_img(net=net,
-                           full_img=img,
+        print("start pred img shape", imgs.shape)
+        masks, rare_outputs = predict_img(net=net,
+                           imgs=imgs, true_masks=true_masks,
                            scale_factor=args.scale,
                            out_threshold=args.mask_threshold,
                            device=device)
@@ -171,10 +167,12 @@ if __name__ == "__main__":
 
         print(" torch.__file__",  torch.__file__)
 
-        for index, t_img in enumerate(img):
+        for index, t_img in enumerate(imgs):
             image = t_img
             image = image.permute(1, 2, 0)
             print("image shape", image.shape)
             print("mask shape", masks[index].shape)
+            # print("nn.BCEWithLogitsLoss()", torch.nn.BCEWithLogitsLoss(rare_outputs, true_masks))
             plot_img_and_mask(image, masks[index])
+            # plot_img_and_mask(image, true_masks[index])
 

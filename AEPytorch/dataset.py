@@ -72,7 +72,7 @@ class AEDataset(Dataset):
         if len(image.shape) < 3:
             return self.prev_img, self.prev_mask
 
-        masks = GeneralUtils.generate_map(image, current_anns)
+        masks, grid = GeneralUtils.generate_map(image, current_anns)
 
         # merge all masks !
         global_mask = np.sum(np.array(masks), axis=0)
@@ -82,6 +82,7 @@ class AEDataset(Dataset):
         image = augmentations["image"]
 
         image = np.moveaxis(image, -1, 0)
+        grid = np.moveaxis(grid, -1, 0)
 
         global_mask = augmentations["mask"]
 
@@ -96,12 +97,12 @@ class AEDataset(Dataset):
         # print("mask resized shape", global_mask.shape)
         # # !!!
 
-        return image, global_mask
+        return image, (global_mask, grid)
 
 
-def test():
+def tst():
     dataset = AEDataset(
-        r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json",
+        r"C:\Users\m\Desktop\COCO\annotations\instances_train2017.json",
     )
 
     loader = DataLoader(dataset=dataset,
@@ -135,4 +136,4 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
+    tst()

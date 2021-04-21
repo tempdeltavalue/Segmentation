@@ -15,6 +15,7 @@ from unet_model import UNet
 import sys
 sys.path.append(r'C:\\Users\\m\\Desktop\\Segmentation\\AEPytorch')
 from dataset import AEDataset
+from yolo_loss import YoloLoss
 
 # from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader, random_split
@@ -22,7 +23,6 @@ from torch.utils.data import DataLoader, random_split
 dir_img = 'data/imgs/'
 dir_mask = 'data/masks/'
 dir_checkpoint = 'checkpoints/'
-
 
 def train_net(net,
               device,
@@ -66,12 +66,14 @@ def train_net(net,
     else:
         criterion = nn.BCEWithLogitsLoss()
 
+    detection_loss = YoloLoss()
+
     for epoch in range(epochs):
         net.train()
 
         epoch_loss = 0
         with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
-            for imgs, true_masks in train_loader:
+            for imgs, (true_masks, true_detection_anc) in train_loader:
                 assert imgs.shape[1] == net.n_channels, \
                     f'Network has been defined with {net.n_channels} input channels, ' \
                     f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
@@ -81,14 +83,17 @@ def train_net(net,
                 mask_type = torch.float32 if net.n_classes == 1 else torch.long
                 true_masks = true_masks.to(device=device, dtype=mask_type)
                 print("train img shapes", imgs.shape)
-                masks_pred = net(imgs)
-                print("train masks_pred shapes", masks_pred.shape)
+                masks_pred, detection_out = net(imgs)
 
-                loss = criterion(masks_pred, true_masks)
+                detection_l = detection_loss(detection_out, true_detection_anc)
+
+                loss = criterion(masks_pred, true_masks) + float(detection_l)
+
                 epoch_loss += loss.item()
                 # writer.add_scalar('Loss/train', loss.item(), global_step)
 
-                pbar.set_postfix(**{'loss (batch)': loss.item()})
+                loss_string = "loss (batch) {} yolo loss {}".format(loss.item(), detection_l.item())
+                pbar.set_postfix(**{'loss (batch)': loss_string})
 
                 optimizer.zero_grad()
                 loss.backward()

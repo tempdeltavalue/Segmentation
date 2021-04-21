@@ -95,10 +95,23 @@ class GeneralUtils:
             return img
 
     @staticmethod
-    def generate_map(img, current_anns):
+    def generate_map(img,
+                     current_anns,
+                     num_side_anchors=7,
+                     feature_map_side=56):
         masks = []
+        grid = np.zeros((feature_map_side, feature_map_side, 5))
+
+        img_side = img.shape[1]
+
         for cur_ann in current_anns:
             segmentation = cur_ann["segmentation"]
+            box = cur_ann["bbox"]
+
+            x, y, w, h = [x / feature_map_side for x in box]
+            center_obj_x_ind = int(x + (w / 2))
+            center_obj_y_ind = int(y + (h / 2))
+            grid[center_obj_x_ind, center_obj_y_ind] = x, y, w, h, 1
 
             for seg_map in segmentation:
                 len_seg_map = len(seg_map)
@@ -116,13 +129,13 @@ class GeneralUtils:
                 out[mask] = img[mask]
                 masks.append(mask)
 
-        return masks
+        return masks, grid
 
     @staticmethod
     def generate_coco_subset():
         max_count = 1000
         counter = 0
-        ann_path = r"C:\Users\m\Downloads\annotations_trainval2017\annotations\instances_train2017.json"
+        ann_path = r"C:\Users\m\Desktop\COCO\annotations\instances_train2017.json"
 
         pre_images, pre_annotations = GeneralUtils.preprocess_coco_ann(ann_path)
 
@@ -155,7 +168,7 @@ class GeneralUtils:
 
             # continue
 
-            masks = GeneralUtils.generate_map(img, current_anns)
+            masks, grid = GeneralUtils.generate_map(img, current_anns)
 
             # merge all masks !
             global_mask = np.sum(np.array(masks), axis=0)
@@ -163,7 +176,6 @@ class GeneralUtils:
             import numpy
             numpy.set_printoptions(threshold=sys.maxsize)
 
-            print(global_mask)
             masks = [global_mask]
             # # !!!
 
