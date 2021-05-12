@@ -17,7 +17,7 @@ sys.path.append(r'C:\\Users\\m\\Desktop\\Segmentation\\AEPytorch')
 from dataset import AEDataset
 from yolo_loss import YoloLoss
 
-# from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader, random_split
 
 dir_img = 'data/imgs/'
@@ -42,10 +42,11 @@ def train_net(net,
     n_train = len(dataset) - n_val
     train, val = random_split(dataset, [n_train, n_val])
     print("train", train)
-    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
-    val_loader = DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True, drop_last=True)
+    num_workers = 1
+    train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    val_loader = DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True, drop_last=True)
 
-    # writer = SummaryWriter(comment=f'LR_{lr}_BS_{batch_size}_SCALE_{img_scale}')
+    writer = SummaryWriter(comment=f'LR_{lr}_BS_{batch_size}_SCALE_{img_scale}')
     global_step = 0
 
     logging.info(f'''Starting training:
@@ -86,14 +87,22 @@ def train_net(net,
 
                 masks_pred, detection_out = net(imgs)
 
-                detection_l = detection_loss(detection_out, true_detection_anc)
-                mask_l = criterion(masks_pred, true_masks)
-                loss = mask_l + float(detection_l)
+                box_loss, object_loss, no_object_loss = detection_loss(detection_out, true_detection_anc)
+                mask_loss = criterion(masks_pred, true_masks)
+                print("mask_loss", mask_loss)
+                loss = mask_loss + float(box_loss) + float(object_loss) + float(no_object_loss)
 
                 epoch_loss += loss.item()
-                # writer.add_scalar('Loss/train', loss.item(), global_step)
+                writer.add_scalar('Loss/train', loss.item(), global_step)
 
-                loss_string = "loss (batch) {} yolo loss {}".format(mask_l.item(), detection_l.item())
+                loss_string = "loss (batch) {} " \
+                              "yolo box_loss loss {}" \
+                              " yolo object loss {}" \
+                              "yolo no obj_ loss {}".format(mask_loss.item(),
+                                                         box_loss.item(),
+                                                         object_loss.item(),
+                                                         no_object_loss.item())
+
                 pbar.set_postfix(**{'loss (batch)': loss_string})
 
                 optimizer.zero_grad()
@@ -160,7 +169,7 @@ def get_args():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     args = get_args()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda')
     logging.info(f'Using device {device}')
 
     # Change here to adapt to your data
